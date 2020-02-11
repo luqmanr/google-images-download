@@ -6,7 +6,6 @@
 
 # Import Libraries
 import sys
-import ast
 version = (3, 0)
 cur_version = sys.version_info
 if cur_version >= version:  # If the Current Version of Python is 3.0 or above
@@ -275,15 +274,21 @@ class googleimagesdownload:
         data = object[1]
         main = data[3]
         info = data[9]
+        if info is None:
+            info = data[11]
         formatted_object = {}
-        formatted_object['image_height'] = main[2]
-        formatted_object['image_width'] = main[1]
-        formatted_object['image_link'] = main[0]
-        formatted_object['image_format']=main[0][-1*(len(main[0])-main[0].rfind(".")-1):]
-        formatted_object['image_description'] = info['2003'][3]
-        formatted_object['image_host'] = info['183836587'][0]
-        formatted_object['image_source'] = info['2003'][2]
-        formatted_object['image_thumbnail_url'] = data[2][0]
+        try:
+            formatted_object['image_height'] = main[2]
+            formatted_object['image_width'] = main[1]
+            formatted_object['image_link'] = main[0]
+            formatted_object['image_format']=main[0][-1*(len(main[0])-main[0].rfind(".")-1):]
+            formatted_object['image_description'] = info['2003'][3]
+            formatted_object['image_host'] = info['183836587'][0]
+            formatted_object['image_source'] = info['2003'][2]
+            formatted_object['image_thumbnail_url'] = data[2][0]
+        except Exception as e:
+            print(e)
+            return None
         return formatted_object
 
 
@@ -751,6 +756,7 @@ class googleimagesdownload:
         object_raw = str(s[start_object:end_object])
         object_decode = bytes(object_raw, "utf-8").decode("unicode_escape")
         image_objects = json.loads(object_decode)[31][0][12][2]
+        image_objects = [x for x in image_objects if x[0]==1]
         return image_objects
 
     def _get_all_items(self,page,main_directory,dir_name,limit,arguments):
@@ -760,7 +766,7 @@ class googleimagesdownload:
         i = 0
         count = 1
         image_objects = self._get_image_objects(page)
-        while count < limit+1:
+        while count < limit+1 and i<len(image_objects):
             if len(image_objects) == 0:
                 print("no_links")
                 break
@@ -1014,5 +1020,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-# In[ ]:
